@@ -90,10 +90,8 @@ public class Shopkeeper {
         return sc.nextLine();
     }
 
-}
-
-class Main {
     public static void main(String[] args) {
         new Shopkeeper().start();
     }
+
 }
