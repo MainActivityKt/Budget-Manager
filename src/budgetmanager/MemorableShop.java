@@ -100,9 +100,7 @@ public class MemorableShop {
                         Category category = Category.values()[n - 1];
                         printPurchaseList(category);
                     }
-                    case 5 -> {
-                        printPurchaseList(null);
-                    }
+                    case 5 -> printPurchaseList(null);
                 }
                 System.out.println();
                 printCategories(true, "Choose the type of purchases");
@@ -146,7 +144,8 @@ public class MemorableShop {
     private void savePurchases() {
         System.out.println();
         File file = new File(FILE_PATH);
-        try (FileWriter writer = new FileWriter(file);) {
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.append(String.valueOf(balance)).append("\n");
             for (Category category : Category.values()) {
                 writer.append("Category ").append(category.name()).append("\n");
                 List<Product> items = purchases.get(category);
@@ -169,9 +168,10 @@ public class MemorableShop {
 
     private void loadPurchases() {
         System.out.println();
-        try(Scanner file = new Scanner(new File(FILE_PATH));) {
+        try(Scanner file = new Scanner(new File(FILE_PATH))) {
             ArrayList<Product> items = new ArrayList<>();
             Category currentCategory = Category.FOOD;
+            balance += Double.parseDouble(file.nextLine());
             file.nextLine();  // skips the first category line
 
             while (file.hasNextLine()) {
@@ -191,7 +191,6 @@ public class MemorableShop {
                     String name = line.split("=")[0];
                     double price = Double.parseDouble(line.split("=")[1]);
                     totalIncome += price;
-                    balance -= price;
                     items.add(new Product(name, price));
                 }
                 System.out.println("Purchases were loaded!");
