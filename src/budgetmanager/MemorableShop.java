@@ -1,16 +1,21 @@
 package budgetmanager;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
-public class CategorialShop {
+
+public class MemorableShop {
     private final Scanner sc = new Scanner(System.in);
     private final StringBuilder menu = new StringBuilder();
+    private final String FILE_PATH = "src/budgetmanager/purchases.txt";
     private Boolean isRunning = true;
     private boolean purchaseListIsEmpty = true;
+
     HashMap<Category, ArrayList<Product>> purchases = new HashMap<>();
     double balance = 0.0;
     double totalIncome = 0.0;
-
 
     private void createMenu() {
         menu.append("Choose your action:" + "\n");
@@ -18,6 +23,8 @@ public class CategorialShop {
         menu.append("2) Add purchase" + "\n");
         menu.append("3) Show list of purchases" + "\n");
         menu.append("4) Balance" + "\n");
+        menu.append("5) Save" + "\n");
+        menu.append("6) Load" + "\n");
         menu.append("0) Exit");
     }
 
@@ -40,6 +47,8 @@ public class CategorialShop {
                 case 2 -> addPurchase();
                 case 3 -> showPurchasesList();
                 case 4 -> showBalance();
+                case 5 -> savePurchases();
+                case 6 -> loadPurchases();
                 case 0 -> isRunning = false;
             }
             System.out.println();
@@ -106,7 +115,7 @@ public class CategorialShop {
         if (category != null) {
             System.out.println(category.getCategoryName() + ":");
 
-            ArrayList<Product> items = purchases.get(category);
+            List<Product> items = purchases.get(category);
             if (items.isEmpty()) {
                 System.out.println("The purchase list is empty!");
             } else {
@@ -128,9 +137,69 @@ public class CategorialShop {
             }
         }
     }
+
     private void showBalance() {
         System.out.println();
         System.out.printf("Balance: $%.2f\n", balance);
+    }
+
+    private void savePurchases() {
+        System.out.println();
+        File file = new File(FILE_PATH);
+        try (FileWriter writer = new FileWriter(file);) {
+            for (Category category : Category.values()) {
+                writer.append("Category ").append(category.name()).append("\n");
+                List<Product> items = purchases.get(category);
+
+                if (!items.isEmpty()) {
+                    for (Product product : items) {
+                        writer.append(product.name()).append("=");
+                        writer.append(String.valueOf(product.price())).append("\n");
+                    }
+                }
+                writer.append("\n");
+                System.out.println("Purchases were saved!");
+            }
+
+        } catch (IOException e) {
+            System.out.println("Unable to create file");
+        }
+
+    }
+
+    private void loadPurchases() {
+        System.out.println();
+        try(Scanner file = new Scanner(new File(FILE_PATH));) {
+            ArrayList<Product> items = new ArrayList<>();
+            Category currentCategory = Category.FOOD;
+            file.nextLine();  // skips the first category line
+
+            while (file.hasNextLine()) {
+                String line = file.nextLine();
+                if (line.startsWith("Category")) {
+                    currentCategory = Category.valueOf(line.split(" ")[1]);
+                } else if (line.isEmpty()) {
+                    if (!items.isEmpty()) {
+                        purchases.put(currentCategory, new ArrayList<>(items));
+                        if (purchaseListIsEmpty) {
+                            purchaseListIsEmpty = false;
+                        }
+                        items.clear();
+                    }
+
+                } else {
+                    String name = line.split("=")[0];
+                    double price = Double.parseDouble(line.split("=")[1]);
+                    totalIncome += price;
+                    balance -= price;
+                    items.add(new Product(name, price));
+                }
+                System.out.println("Purchases were loaded!");
+            }
+        } catch (IOException e) {
+            System.out.println("Unable to load purchases file " + e.getMessage());
+        }
+
     }
 
     private double getDoubleInput(String message) {
@@ -171,11 +240,9 @@ public class CategorialShop {
         } else {
             System.out.println("5) Back");
         }
-
     }
 
     public static void main(String[] args) {
-        new CategorialShop().start();
+        new MemorableShop().start();
     }
 }
-
