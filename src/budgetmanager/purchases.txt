@@ -1,11 +1,11 @@
 Category FOOD
-M&m small=3.99
-MLKO 50=0.9
+M&M small=3.99
+Yogurt 50g=0.9
 
 Category CLOTHES
 
 Category ENTERTAINMENT
-NEtflix=12.99
+Netflix=12.99
 
 Category OTHER
 
