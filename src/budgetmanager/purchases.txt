@@ -1,11 +1,24 @@
+1000.00
 Category FOOD
-M&M small=3.99
-Yogurt 50g=0.9
+Eggs=3.99
+Red Fuji Apple=5.99
+Great Value Broccoli Florets=1.00
+Almond 250g=35.43
+FIJI Natural Artesian Water=25.98
+Keystone Ground Bee=6.28
+Hershey's milk chocolate bars=8.54
+Milk=3.50
 
 Category CLOTHES
+Men's Dual Defense Crew Socks 12 Pairs=13.00
 
 Category ENTERTAINMENT
-Netflix=12.99
+Cinema=8.73
+Skate rental=30.00
+Chick-fil-A $10 Gift Card=10.00
+LEGO DUPLO Town Farm Animals=10.10
 
 Category OTHER
+Sensodyne Pronamel Toothpaste=19.74
+Debt=3.50
 

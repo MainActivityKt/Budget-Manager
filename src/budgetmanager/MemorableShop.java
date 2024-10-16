@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-
 public class MemorableShop {
     private final Scanner sc = new Scanner(System.in);
     private final StringBuilder menu = new StringBuilder();
@@ -25,6 +24,7 @@ public class MemorableShop {
         menu.append("4) Balance" + "\n");
         menu.append("5) Save" + "\n");
         menu.append("6) Load" + "\n");
+        menu.append("7) Analyze (Sort)" + "\n");
         menu.append("0) Exit");
     }
 
@@ -49,11 +49,87 @@ public class MemorableShop {
                 case 4 -> showBalance();
                 case 5 -> savePurchases();
                 case 6 -> loadPurchases();
+                case 7 -> sortPurchases();
                 case 0 -> isRunning = false;
             }
             System.out.println();
         }
         System.out.println("Bye!");
+    }
+
+    private void sortPurchases() {
+        System.out.println();
+        System.out.println("How do you want to sort?");
+        String sortingOptions = String.format(
+                "%s\n%s\n%s\n%s\n", "1) Sort all purchases", "2) Sort by type", "3) Sort certain type", "4) Back)"
+        );
+
+        System.out.println(sortingOptions);
+        int n = getIntInput("");
+        while (n != 4) {
+            System.out.println();
+            switch (n) {
+                case 1 -> {
+                    if (purchaseListIsEmpty) {
+                        System.out.println("The purchase list is empty!");
+                    } else {
+                        List<Product> allItems = new ArrayList<>();
+                        purchases.values().forEach(allItems::addAll);
+                        allItems.sort((p1, p2) -> p2.price() != p1.price() ? p2.price() > p1.price() ? 1 : -1 : p2.name().compareTo(p1.name()));
+                        System.out.println("All:");
+                        allItems.forEach(System.out::println);
+                        double totalPrice = allItems.stream().mapToDouble(Product::price).sum();
+                        System.out.printf("Total: $%.2f\n", totalPrice);
+                    }
+                }
+
+                case 2 -> {
+                    System.out.println("Types:");
+                    HashMap<Category, Double> categoryToPrice = new HashMap<>();
+
+                    for (Map.Entry<Category, ArrayList<Product>> item : purchases.entrySet()) {
+                        double price = item.getValue().stream().mapToDouble(Product::price).sum();
+                        categoryToPrice.put(item.getKey(), price);
+                    }
+
+                    List<Map.Entry<Category, Double>> categoryPriceSorted = new ArrayList<>(categoryToPrice.entrySet());
+                    categoryPriceSorted.sort(Map.Entry.comparingByValue());
+                    Collections.reverse(categoryPriceSorted);
+
+                    for (Map.Entry<Category, Double> item : categoryPriceSorted) {
+                        String categoryName = item.getKey().getCategoryName();
+                        Double categoryTotalCost = item.getValue();
+                        System.out.printf("%s - $%.2f\n", categoryName, categoryTotalCost);
+                    }
+                    double totalAmount = categoryPriceSorted.stream().mapToDouble(Map.Entry::getValue).sum();
+                    System.out.printf("Total: $%.2f\n", totalAmount);
+                }
+
+                case 3 -> {
+                    printCategories(false, false,"Choose the type of purchase");
+                    int selectedNumber = getIntInput("");
+                    Category category = Category.values()[selectedNumber - 1];
+
+                    System.out.println();
+                    ArrayList<Product> items = purchases.get(category);
+                    if (items.isEmpty()) {
+                        System.out.println("The purchase list is empty!");
+                    } else {
+                        items.sort((p1, p2) -> p2.price() != p1.price() ? p2.price() > p1.price() ? 1 : -1 : p2.name().compareTo(p1.name()));
+
+                        System.out.println(category.getCategoryName() + ":");
+                        items.forEach(System.out::println);
+
+                        double totalAmount = items.stream().mapToDouble(Product::price).sum();
+                        System.out.printf("Total sum: $%.2f\n", totalAmount);
+                    }
+                }
+            }
+
+            System.out.println();
+            System.out.println(sortingOptions);
+            n = getIntInput("");
+        }
     }
 
 
@@ -66,7 +142,7 @@ public class MemorableShop {
 
     private void addPurchase() {
         System.out.println();
-        printCategories(false, "Choose the type of purchase");
+        printCategories(false, true, "Choose the type of purchase");
         int n = getIntInput("");
         while (n != 5) {
             System.out.println();
@@ -81,7 +157,7 @@ public class MemorableShop {
                 purchaseListIsEmpty = false;
             }
             System.out.println("Purchase was added!\n");
-            printCategories(false, "Choose the type of purchase");
+            printCategories(false, true, "Choose the type of purchase");
             n = getIntInput("");
         }
     }
@@ -90,8 +166,8 @@ public class MemorableShop {
         System.out.println();
         if (purchaseListIsEmpty) {
             System.out.println("The purchase list is empty!");
-        } else  {
-            printCategories(true, "Choose the type of purchases");
+        } else {
+            printCategories(true, true, "Choose the type of purchases");
             int n = getIntInput("");
             while (n != 6) {
                 System.out.println();
@@ -103,7 +179,7 @@ public class MemorableShop {
                     case 5 -> printPurchaseList(null);
                 }
                 System.out.println();
-                printCategories(true, "Choose the type of purchases");
+                printCategories(true, true ,"Choose the type of purchases");
                 n = getIntInput("");
             }
         }
@@ -168,7 +244,7 @@ public class MemorableShop {
 
     private void loadPurchases() {
         System.out.println();
-        try(Scanner file = new Scanner(new File(FILE_PATH))) {
+        try (Scanner file = new Scanner(new File(FILE_PATH))) {
             ArrayList<Product> items = new ArrayList<>();
             Category currentCategory = Category.FOOD;
             balance += Double.parseDouble(file.nextLine());
@@ -193,8 +269,8 @@ public class MemorableShop {
                     totalIncome += price;
                     items.add(new Product(name, price));
                 }
-                System.out.println("Purchases were loaded!");
             }
+            System.out.println("Purchases were loaded!");
         } catch (IOException e) {
             System.out.println("Unable to load purchases file " + e.getMessage());
         }
@@ -226,18 +302,20 @@ public class MemorableShop {
         return value;
     }
 
-    private void printCategories(boolean showAllOption, String message) {
+    private void printCategories(boolean showAllOption, boolean showBackOption, String message) {
         if (!message.isBlank()) {
             System.out.println(message);
         }
         for (Category c : Category.values()) {
             System.out.printf("%d) %s\n", c.ordinal() + 1, c.getCategoryName());
         }
-        if (showAllOption) {
+        if (showAllOption && showBackOption) {
             System.out.println("5) All");
             System.out.println("6) Back");
-        } else {
-            System.out.println("5) Back");
+        } else if (showAllOption) {
+            System.out.println("5) All");
+        } else if (showBackOption) {
+            System.out.println("6) Back");
         }
     }
 
